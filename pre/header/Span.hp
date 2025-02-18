@@ -1,0 +1,17 @@
+#include "Vectors.h"
+#include "type_shortage.h"
+
+typedef f64 vec_sclr_t;
+
+#startdef
+#define USE_SPAN(DIM)
+
+typedef struct {
+    vec##DIM ##_t m_x, m_n;  
+} span##DIM ##_t;
+
+vec_sclr_t span##DIM ##_hit(span##DIM ##_t a, vec##DIM ##_t b, vec##DIM ##_t x) {
+    return vec##DIM ##_dot(vec##DIM ##_sub(a.m_x, b), a.m_n) / vec##DIM ##_dot(x, a.m_n);
+}
+
+#enddef
