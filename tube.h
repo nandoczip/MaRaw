@@ -140,8 +140,8 @@ i32 run() {
     vec3_t light = {-1, -1, -1};
     
     f64 t_0, t_1, fps;
-    t_0 = 0;
-    t_1 = 20;
+    t_0 = 1;
+    t_1 = 2;
     fps = 1;
     
     ui32 frame;
@@ -155,15 +155,22 @@ i32 run() {
                 cam.m_x.m_vector[2] = -10 + t;
                 cam3_calc_ray(&cam, x, y);
                 
-                f64 my = n_m_approx(out, -1, 1e-10, 1e-6, cam.m_x, cam.m_ray);
-                //printf("h");
-                f64 lambda = vec3_dot(vec3_sub(g(my), cam.m_x), cam.m_ray) / vec3_lensq(cam.m_ray);
+                f64 min_d = INFINITY;
 
-                f64 d = vec3_lensq(vec3_sub(vec3_add(vec3_mul(cam.m_ray, lambda), cam.m_x), g(my)));
+                for (ui8 x_0_i = -100; x_0_i < 200; x_0_i += 100) {
+                    f64 my = n_m_approx(out, x_0_i, 1e-10, 1e-6, cam.m_x, cam.m_ray);
+                    //printf("h");
+                    f64 lambda = vec3_dot(vec3_sub(g(my), cam.m_x), cam.m_ray) / vec3_lensq(cam.m_ray);
 
+                    f64 d = vec3_lensq(vec3_sub(vec3_add(vec3_mul(cam.m_ray, lambda), cam.m_x), g(my)));
+
+                    if (d < min_d) {
+                        min_d = d;
+                    }
+                }
                 const f64 r = 1;
 
-                if (d > r * r) {
+                if (min_d > r * r) {
                     buffer.m_buffer[y * h + x] = (vec3_t) {
                         0,
                         0,
@@ -180,7 +187,7 @@ i32 run() {
                 }
             }
         }
-
+        
         buffer3_save_png_frame(&buffer, "out", frame, 8);
     }
 

@@ -1,0 +1,167 @@
+#include <math.h>
+
+#include "type_shortage.h"
+
+
+#startdef
+#define USE_IVEC(DIM, TYPE)
+
+typedef TYPE ivec_sclr_t;
+
+typedef struct { 
+    ivec_sclr_t m_ivector[DIM];
+} ivec##DIM ##_t;
+
+ivec##DIM ##_t ivec##DIM ##_add(ivec##DIM ##_t a, ivec##DIM ##_t b);
+
+ivec##DIM ##_t ivec##DIM ##_sub(ivec##DIM ##_t a, ivec##DIM ##_t b);
+
+ivec##DIM ##_t ivec##DIM ##_mul(ivec##DIM ##_t a, ivec_sclr_t b); 
+
+ivec##DIM ##_t ivec##DIM ##_div(ivec##DIM ##_t a, ivec_sclr_t b);
+
+ivec##DIM ##_t ivec##DIM ##_norm(ivec##DIM ##_t a);
+
+void ivec##DIM ##_addeq(ivec##DIM ##_t* a, ivec##DIM ##_t b);
+
+void ivec##DIM ##_subeq(ivec##DIM ##_t* a, ivec##DIM ##_t b);
+
+void ivec##DIM ##_muleq(ivec##DIM ##_t* a, ivec_sclr_t b);
+
+void ivec##DIM ##_diveq(ivec##DIM ##_t* a, ivec_sclr_t b);
+
+void ivec##DIM ##_normeq(ivec##DIM ##_t* a);
+
+ivec_sclr_t ivec##DIM ##_dot(ivec##DIM ##_t a, ivec##DIM ##_t b);
+
+ivec_sclr_t ivec##DIM ##_len(ivec##DIM ##_t a);
+
+ivec_sclr_t ivec##DIM ##_lensq(ivec##DIM ##_t a);
+
+ivec_sclr_t ivec##DIM ##_dist(ivec##DIM ##_t a, ivec##DIM ##_t b);
+
+//#include "Vectors.h"
+
+ivec##DIM ##_t ivec##DIM ##_add(ivec##DIM ##_t a, ivec##DIM ##_t b) {
+    ivec##DIM ##_t c;
+
+    for (ui32 i = 0; i < DIM; i++) {
+        c.m_ivector[i] = a.m_ivector[i] + b.m_ivector[i];
+    }
+
+    return c;
+}
+
+ivec##DIM ##_t ivec##DIM ##_sub(ivec##DIM ##_t a, ivec##DIM ##_t b) {
+    ivec##DIM ##_t c;
+
+    for (ui32 i = 0; i < DIM; i++) {
+        c.m_ivector[i] = a.m_ivector[i] - b.m_ivector[i];
+    }
+
+    return c;
+}
+
+ivec##DIM ##_t ivec##DIM ##_mul(ivec##DIM ##_t a, ivec_sclr_t b) {
+    ivec##DIM ##_t c;
+
+    for (ui32 i = 0; i < DIM; i++) {
+        c.m_ivector[i] = b * a.m_ivector[i];
+    }
+
+    return c;
+}
+
+ivec##DIM ##_t ivec##DIM ##_div(ivec##DIM ##_t a, ivec_sclr_t b) {
+    ivec##DIM ##_t c;
+
+    for (ui32 i = 0; i < DIM; i++) {
+        c.m_ivector[i] = a.m_ivector[i] / b;
+    }
+
+    return c;
+}
+
+ivec##DIM ##_t ivec##DIM ##_norm(ivec##DIM ##_t a) {
+    return ivec##DIM ##_div(a, ivec##DIM ##_len(a));
+}
+
+// a += b;
+
+void ivec##DIM ##_addeq(ivec##DIM ##_t* a, ivec##DIM ##_t b) {
+    for (ui32 i = 0; i < DIM; i++) {
+        a->m_ivector[i] += b.m_ivector[i];
+    }
+}
+
+void ivec##DIM ##_subeq(ivec##DIM ##_t* a, ivec##DIM ##_t b) {
+    for (ui32 i = 0; i < DIM; i++) {
+        a->m_ivector[i] -= b.m_ivector[i];
+    }
+}
+
+void ivec##DIM ##_muleq(ivec##DIM ##_t* a, ivec_sclr_t b) {
+    for (ui32 i = 0; i < DIM; i++) {
+        a->m_ivector[i] *= b;
+    }
+}
+
+void ivec##DIM ##_diveq(ivec##DIM ##_t* a, ivec_sclr_t b) {
+    for (ui32 i = 0; i < DIM; i++) {
+        a->m_ivector[i] /= b;
+    }
+}
+
+void ivec##DIM ##_normeq(ivec##DIM ##_t* a) {
+    ivec##DIM ##_diveq(a, ivec##DIM ##_len(*a));
+}
+
+ivec_sclr_t ivec##DIM ##_dot(ivec##DIM ##_t a, ivec##DIM ##_t b) {
+    ivec_sclr_t c = 0;
+
+    for (ui32 i = 0; i < DIM; i++) {
+        c += a.m_ivector[i] * b.m_ivector[i];
+    }
+
+    return c;
+}
+
+
+// latex
+// lensq = sum_{i=0}^{dim} a_i^2
+// len = sqrt{lensq}
+
+ivec_sclr_t ivec##DIM ##_lensq(ivec##DIM ##_t a) {
+    ivec_sclr_t c = 0;
+
+    for (ui32 i = 0; i < DIM; i++) {
+        c += a.m_ivector[i] * a.m_ivector[i]; 
+    }
+
+    return c;
+}
+
+ivec_sclr_t ivec##DIM ##_len(ivec##DIM ##_t a) {
+    return sqrt(ivec##DIM ##_lensq(a));
+}
+
+ivec_sclr_t ivec##DIM ##_dist(ivec##DIM ##_t a, ivec##DIM ##_t b) {
+    return ivec##DIM ##_len(ivec##DIM ##_sub(a, b));
+}
+
+#enddef
+
+#ifdef VEC3
+#ifdef VEC_CROSS3
+#define VEC_CROSS3 1
+ivec3_t ivec3_cross(ivec3_t a, ivec3_t b) {
+    ivec3_t c;
+
+    c.m_ivector[0] = a.m_ivector[1] * b.m_ivector[2] - a.m_ivector[2] * b.m_ivector[1];
+    c.m_ivector[1] = a.m_ivector[2] * b.m_ivector[0] - a.m_ivector[0] * b.m_ivector[2];
+    c.m_ivector[2] = a.m_ivector[0] * b.m_ivector[1] - a.m_ivector[1] * b.m_ivector[0];
+
+    return c;
+}
+#endif
+#endif

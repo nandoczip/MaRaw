@@ -2,7 +2,5 @@
 
 #cd /media/nando/DATAS/Art/Math/Engine/ubuntu/cmake
 
-args=("$@")
-
-./cmake/Engine ${args[0]} ${args[1]} ${args[2]}
+./cmake/Engine f
 

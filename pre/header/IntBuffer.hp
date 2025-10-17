@@ -11,17 +11,17 @@ USE_VEC(2)
 
 #startdef
 
-#define USE_BUFFER(DIM)
+#define USE_IBUFFER(DIM, TYPE)
 
 typedef struct {
     ui32 m_w, m_h;
     vec##DIM ##_t* m_buffer;
-} buffer##DIM ##_t;
+} ibuffer##DIM ##_t;
 
 
 //float to uint
-void buffer##DIM ##_f_to_i(buffer##DIM ##_t* this, void* buffer, ui8 bits) {
-    ui8* b = (ui8*) buffer;
+void ibuffer##DIM ##_f_to_i(ibuffer##DIM ##_t* this, void* ibuffer, ui8 bits) {
+    ui8* b = (ui8*) ibuffer;
     vec_sclr_t* vec = (vec_sclr_t*) this->m_buffer;
 
     for (ui32 i = 0; i < this->m_w * this->m_h * DIM; i++) {
@@ -37,7 +37,7 @@ void buffer##DIM ##_f_to_i(buffer##DIM ##_t* this, void* buffer, ui8 bits) {
     }
 }
 
-i8 buffer##DIM ##_resize(buffer##DIM ##_t* this, ui32 w, ui32 h) {
+i8 ibuffer##DIM ##_resize(ibuffer##DIM ##_t* this, ui32 w, ui32 h) {
     vec##DIM ##_t* new_ptr = (vec##DIM ##_t*) malloc(w * h * sizeof(vec##DIM ##_t) * DIM);
 
     if (new_ptr == NULL) {
@@ -57,11 +57,11 @@ i8 buffer##DIM ##_resize(buffer##DIM ##_t* this, ui32 w, ui32 h) {
     return 0;
 }
 
-void buffer##DIM ##_init(buffer##DIM ##_t* this) {
+void ibuffer##DIM ##_init(ibuffer##DIM ##_t* this) {
     this->m_buffer = NULL;
 }
 
-i8 buffer##DIM ##_save_png(buffer##DIM ##_t* this, const char* path, ui8 bits_per_chanel) {
+i8 ibuffer##DIM ##_save_png(ibuffer##DIM ##_t* this, const char* path, ui8 bits_per_chanel) {
     FILE* fp = fopen(path, "wb");
     if(!fp) abort();
 
@@ -92,9 +92,9 @@ i8 buffer##DIM ##_save_png(buffer##DIM ##_t* this, const char* path, ui8 bits_pe
     // Use png_set_filler().
     //png_set_filler(png, 0, PNG_FILLER_AFTER);
     
-    void* buffer = malloc(bits_per_chanel * DIM * this->m_w * this->m_h / 8);
+    void* ibuffer = malloc(bits_per_chanel * DIM * this->m_w * this->m_h / 8);
 
-    buffer##DIM ##_f_to_i(this, buffer, 8);
+    ibuffer##DIM ##_f_to_i(this, ibuffer, 8);
 
     void** b = (void**) malloc(sizeof(*b) * this->m_h);
 
@@ -102,7 +102,7 @@ i8 buffer##DIM ##_save_png(buffer##DIM ##_t* this, const char* path, ui8 bits_pe
         int i;
         void* p;
 
-        for (i = 0, p = buffer; i < this->m_h; i++, p += this->m_w * DIM * bits_per_chanel / 8) {
+        for (i = 0, p = ibuffer; i < this->m_h; i++, p += this->m_w * DIM * bits_per_chanel / 8) {
             b[i] = p;
         }
     }
@@ -116,14 +116,14 @@ i8 buffer##DIM ##_save_png(buffer##DIM ##_t* this, const char* path, ui8 bits_pe
     png_destroy_write_struct(&png, &info);
     
     free(b);
-    free(buffer);
+    free(ibuffer);
 
     printf("Saved '%s'.\n", path);
 
     return 0;
 }
 
-i8 buffer##DIM ##_save_png_frame(buffer##DIM ##_t* this, const char* folder, ui32 frame, ui8 bits_per_chanel) {
+i8 ibuffer##DIM ##_save_png_frame(ibuffer##DIM ##_t* this, const char* folder, ui32 frame, ui8 bits_per_chanel) {
     ui32 len_0 = strlen(folder);
     ui32 len_1;
 
@@ -148,12 +148,12 @@ i8 buffer##DIM ##_save_png_frame(buffer##DIM ##_t* this, const char* folder, ui3
         frame %= b;
     }
 
-    buffer##DIM ##_save_png(this, new, bits_per_chanel); 
+    ibuffer##DIM ##_save_png(this, new, bits_per_chanel); 
 
     free(new);
 }
 
-i8 buffer##DIM ##_save_iraw(buffer##DIM ##_t* this, const char* path, ui8 bytes) {
+i8 ibuffer##DIM ##_save_iraw(ibuffer##DIM ##_t* this, const char* path, ui8 bytes) {
     FILE* f = fopen(path, "wb");
     
     ui8 dim = DIM;
@@ -167,13 +167,13 @@ i8 buffer##DIM ##_save_iraw(buffer##DIM ##_t* this, const char* path, ui8 bytes)
     fwrite(&this->m_w, 1, sizeof(this->m_w), f);
     fwrite(&this->m_h, 1, sizeof(this->m_h), f);
     
-    void* buffer = malloc(this->m_w * this->m_h * DIM * bytes);
+    void* ibuffer = malloc(this->m_w * this->m_h * DIM * bytes);
      
-    buffer##DIM ##_f_to_i(this, buffer, bytes * 8);
+    ibuffer##DIM ##_f_to_i(this, ibuffer, bytes * 8);
 
     fwrite(ptr, 1, bytes * this->m_w * this->m_h * DIM, f);
     
-    free(buffer);
+    free(ibuffer);
     fclose(f);
 
     printf("Saved '%s'.\n", path);
@@ -181,7 +181,7 @@ i8 buffer##DIM ##_save_iraw(buffer##DIM ##_t* this, const char* path, ui8 bytes)
     return 1;
 }
 
-i8 buffer##DIM ##_save_raw(buffer##DIM ##_t* this, const char* path) {
+i8 ibuffer##DIM ##_save_raw(ibuffer##DIM ##_t* this, const char* path) {
     FILE* f = fopen(path, "wb");
     
     ui8 dim = DIM;
@@ -205,39 +205,39 @@ i8 buffer##DIM ##_save_raw(buffer##DIM ##_t* this, const char* path) {
     return 1;
 }
 
-i8 buffer##DIM ##_load_raw(buffer##DIM ##_t* this, const char* path) {
+i8 ibuffer##DIM ##_load_raw(ibuffer##DIM ##_t* this, const char* path) {
     FILE* f = fopen(path, "rb");
     
     char s[4];
     ui8 dim, bytes;
     char type;
 
-    fread(s, 1, 4, f);
-    fread(&dim, 1, 1, f);
-    fread(&bytes, 1, 1, f);
-    fread(&type, 1, 1, f);
+    fread(s, 1, sizeof(s), f);
+    fread(&dim, 1, sizeof(dim), f);
+    fread(&bytes, 1, sizeof(bytes), f);
+    fread(&type, 1, sizeof(type), f);
 
     if (strcmp(s, "RAW")) {
         fprintf(stderr, "Control string at position 0 is '%s' (not '%s').\n", s, "RAW");
-        return 0;
+        return 1;
     }
     if (dim != DIM) {
         fprintf(stderr, "Value at position 0 is '%u' (not '%u').\n", dim, DIM);
-        return 0;
+        return 1;
     }
 
 
-    fread(&this->m_w, 1, 4, f);
-    fread(&this->m_h, 1, 4, f);
+    fread(&this->m_w, 1, sizeof(this->m_w), f);
+    fread(&this->m_h, 1, sizeof(this->m_h), f);
     
-    buffer##DIM ##_resize(this, this->m_w, this->m_h);
+    ibuffer##DIM ##_resize(this, this->m_w, this->m_h);
     
 
     switch (type) {
         case 'f':
             if (bytes != sizeof(this->m_buffer[0]) / DIM) {
                 fprintf(stderr, "Value at position 0 is '%u' (not '%lu').\n", bytes, sizeof(this->m_buffer[0]) / DIM);
-                return 0;
+                return 1;
             }
             fread(this->m_buffer, 1, bytes * this->m_w * this->m_h * DIM, f);
 
@@ -266,7 +266,7 @@ i8 buffer##DIM ##_load_raw(buffer##DIM ##_t* this, const char* path) {
 
     printf("Loaded '%s'.\n", path);
 
-    return 1;
+    return 0;
 }
 
 #enddef
