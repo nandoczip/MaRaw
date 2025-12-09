@@ -1,10 +1,11 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "png.h"
 #include "type_shortage.h"
 
 #ifndef VEC2
-#define VEC2
+#define VEC2 1
 USE_VEC(2)
 #endif
 
@@ -15,6 +16,24 @@ typedef struct { \
     ui32 m_w, m_h; \
     vec##DIM ##_t* m_buffer; \
 } buffer##DIM ##_t; \
+ \
+ \
+void buffer##DIM ##_f_to_i(buffer##DIM ##_t* this, void* buffer, ui8 bits) { \
+    ui8* b = (ui8*) buffer; \
+    vec_sclr_t* vec = (vec_sclr_t*) this->m_buffer; \
+ \
+    for (ui32 i = 0; i < this->m_w * this->m_h * DIM; i++) { \
+        if (vec[i] >= 1.0) { \
+            b[i] = ~0; \
+        } \
+        else if (vec[i] <= 0.0) { \
+            b[i] = 0; \
+        } \
+        else { \
+            b[i] = vec[i] * ((vec_sclr_t) ((ui8) (~0))); \
+        } \
+    } \
+} \
  \
 i8 buffer##DIM ##_resize(buffer##DIM ##_t* this, ui32 w, ui32 h) { \
     vec##DIM ##_t* new_ptr = (vec##DIM ##_t*) malloc(w * h * sizeof(vec##DIM ##_t) * DIM); \
@@ -59,7 +78,7 @@ i8 buffer##DIM ##_save_png(buffer##DIM ##_t* this, const char* path, ui8 bits_pe
         info, \
         this->m_w, this->m_h, \
         bits_per_chanel, \
-        PNG_COLOR_MASK_COLOR | (DIM == 4) * PNG_COLOR_MASK_ALPHA, \
+        PNG_COLOR_MASK_COLOR | (DIM == 4) * 0b100, \
         PNG_INTERLACE_NONE, \
         PNG_COMPRESSION_TYPE_BASE, \
         PNG_FILTER_TYPE_DEFAULT \
@@ -128,22 +147,63 @@ i8 buffer##DIM ##_save_png_frame(buffer##DIM ##_t* this, const char* folder, ui3
     free(new); \
 } \
  \
-void buffer##DIM ##_f_to_i(buffer##DIM ##_t* this, void* buffer, ui8 bits) { \
-    ui8* b = (ui8*) buffer; \
-    vec_sclr_t* vec = (vec_sclr_t*) this->m_buffer; \
+i8 buffer##DIM ##_save_raw(buffer##DIM ##_t* this, const char* path) { \
+    FILE* f = fopen(path, "wb"); \
+     \
+    ui8 dim = DIM; \
+    ui8 bytes = sizeof(this->m_buffer[0]) / DIM; \
+     \
+    fwrite("RAW", 1, 4, f); \
+    fwrite(&dim, 1, sizeof(dim), f); \
+    fwrite(&bytes, 1, sizeof(bytes), f); \
+     \
+    fwrite(&this->m_w, 1, sizeof(this->m_w), f); \
+    fwrite(&this->m_h, 1, sizeof(this->m_h), f); \
  \
-    for (ui32 i = 0; i < this->m_w * this->m_h * DIM; i++) { \
-        if (vec[i] >= 1.0) { \
-            b[i] = ~0; \
-        } \
-        else if (vec[i] <= 0.0) { \
-            b[i] = 0; \
-        } \
-        else { \
-            b[i] = vec[i] * ((vec_sclr_t) ((ui8) (~0))); \
-        } \
-    } \
+    fwrite(this->m_buffer, 1, sizeof(this->m_buffer[0]) * this->m_w * this->m_h, f); \
+ \
+    fclose(f); \
+ \
+    printf("Saved '%s'.\n", path); \
+ \
+    return 1; \
 } \
  \
+i8 buffer##DIM ##_load_raw(buffer##DIM ##_t* this, const char* path) { \
+    FILE* f = fopen(path, "rb"); \
+     \
+    char s[4]; \
+    ui8 dim, bytes; \
+ \
+    fread(s, 1, sizeof(s), f); \
+    fread(&dim, 1, sizeof(dim), f); \
+    fread(&bytes, 1, sizeof(bytes), f); \
+ \
+    if (strcmp(s, "RAW")) { \
+        fprintf(stderr, "Control string at position 0 is '%s' (not '%s').\n", s, "RAW"); \
+        return 1; \
+    } \
+    if (dim != DIM) { \
+        fprintf(stderr, "Value at position 0 is '%u' (not '%u').\n", dim, DIM); \
+        return 1; \
+    } \
+    if (bytes != sizeof(this->m_buffer[0]) / DIM) { \
+        fprintf(stderr, "Value at position 0 is '%u' (not '%lu').\n", bytes, sizeof(this->m_buffer[0]) / DIM); \
+        return 1; \
+    } \
+ \
+    fread(&this->m_w, 1, sizeof(this->m_w), f); \
+    fread(&this->m_h, 1, sizeof(this->m_h), f); \
+     \
+    buffer##DIM ##_resize(this, this->m_w, this->m_h); \
+ \
+    fread(this->m_buffer, 1, sizeof(this->m_buffer[0]) * this->m_w * this->m_h, f); \
+     \
+    fclose(f); \
+ \
+    printf("Loaded '%s'.\n", path); \
+ \
+    return 0; \
+} \
  \
 

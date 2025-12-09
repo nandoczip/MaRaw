@@ -11,7 +11,7 @@ add_executable(
     #src/Matrix.c
     #src/Sphere.c
     #src/Hitable.c
-    #src/Quaternion.c
+    src/Quaternion.c
     #src/Span.c
     #src/Vectors.c
     #src/Rgb.c

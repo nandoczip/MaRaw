@@ -44,7 +44,7 @@ void complex_subeq(complex_t* a, complex_t b) {
 void complex_muleq(complex_t* a, complex_t b) {
     complex_t c = *a;
 
-    a->m_r = c.m_r * b.m_r + c.m_i * b.m_i;
+    a->m_r = c.m_r * b.m_r - c.m_i * b.m_i;
     a->m_i = c.m_r * b.m_i + c.m_i * b.m_r;
 }
 
@@ -59,17 +59,32 @@ void complex_diveq(complex_t* a, complex_t b) {
 // -------MORE COMPLEX--------
 
 complex_t complex_exp(complex_t a) {
-    vec_sclr_t e = exp(a.m_r);
-
-    return (complex_t) {e * cos(a.m_i), -e * sin(a.m_i)};
+    vec_sclr_t x = exp(a.m_r);
+    
+// math equivalent:      x * (cos(a.m_i) + i * sin(a.m_i))
+    return (complex_t) {x * cos(a.m_i), x * sin(a.m_i)};
 }
 
-complex_t complex_pow(complex_t base, complex_t exp) {
+complex_t complex_cpow(complex_t base, complex_t exp) {
     return complex_exp(complex_mul(complex_log(base), exp));
 }
 
+//TODO
+/*complex_t complex_fpow(complex_t base, vec_sclr_t) {
+}*/
+
+complex_t complex_upow(complex_t base, unsigned int exp) {
+    complex_t z = {1, 0};
+
+    for (ui32 i = 0; i < exp; i++) {
+        complex_muleq(&z, base);
+    }
+
+    return z;
+}
+
 complex_t complex_sqrt(complex_t a) {
-    return complex_pow(a, (complex_t) {0.5, 0});
+    return complex_cpow(a, (complex_t) {0.5, 0});
 }
 
 complex_t complex_log(complex_t a) {
@@ -83,11 +98,16 @@ complex_t complex_conj(complex_t a) {
     return a;
 }
 
-vec_sclr_t complex_len_sq(complex_t a) {
+vec_sclr_t complex_lensq(complex_t a) {
     return a.m_r * a.m_r + a.m_i * a.m_i;
 }
 
 vec_sclr_t complex_len(complex_t a) {
-    return sqrt(complex_len_sq(a));
+    return sqrt(complex_lensq(a));
 }
 
+// ------------FRIENDS-------------
+
+void complex_print(complex_t a) {
+    printf("%f + %fi\n", a.m_r, a.m_i); 
+}
