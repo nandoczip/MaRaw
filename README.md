@@ -1,4 +1,4 @@
-# Maraw
+# MaRaw
 
 ## About
 This is just a fun little project.
